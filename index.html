@@ -13,6 +13,10 @@
 :root{
   --bg:#0C0C0D; --fg:#F2F0EE; --muted:#8C8C87; --accent:#FF805B;
   --paper:#F1EEE9; --ink:#141416;
+  /* the signature coral, shared by the signature stroke and the facts band.
+     kept separate from --accent because #content shadows --accent with a darker
+     burnt variant that is readable on paper. */
+  --signature:#FF805B;
   --display:"Anton",Impact,sans-serif;
   --body:"Archivo",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
 }
@@ -52,7 +56,7 @@ a{color:inherit}
 #sigwrap{position:absolute;inset:0;display:grid;place-items:center;z-index:6;
   pointer-events:none}
 #sigwrap svg{width:min(76vw,980px);height:auto;overflow:visible}
-.sig-seg{fill:none;stroke:var(--accent);stroke-width:8;stroke-linecap:round;stroke-linejoin:round;visibility:hidden}
+.sig-seg{fill:none;stroke:var(--signature);stroke-width:8;stroke-linecap:round;stroke-linejoin:round;visibility:hidden}
 #quoteBg{position:absolute;left:0;top:50%;width:100%;height:52vh;
   transform:translateY(-50%);z-index:0;pointer-events:none;opacity:0;overflow:hidden}
 #quoteBg svg{width:100%;height:100%;display:block;overflow:visible}
@@ -63,11 +67,7 @@ a{color:inherit}
   font-size:10px;letter-spacing:.3em;text-transform:uppercase;color:#6E6E69}
 
 /* ================= SECTIONS ================= */
-.statement{padding-top:clamp(40px,7vh,90px);padding-bottom:clamp(60px,11vh,130px)}
-.statement p{font-family:var(--display);text-transform:uppercase;font-weight:400;
-  font-size:clamp(1.9rem,6.4vw,6rem);line-height:1.02;margin:0;max-width:16ch}
-.statement .hl{color:var(--accent)}
-.facts{padding-top:clamp(50px,9vh,110px);padding-bottom:clamp(50px,9vh,110px);border-top:1px solid #232326}
+.facts{padding-top:clamp(50px,9vh,110px);padding-bottom:clamp(50px,9vh,110px)}
 .facts-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:clamp(26px,4vw,64px)}
 .fact .k{font-size:11px;letter-spacing:.26em;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:12px}
 .fact .v{font-family:var(--display);text-transform:uppercase;font-size:clamp(1.5rem,3vw,2.6rem);line-height:1.05}
@@ -110,6 +110,54 @@ a.citem:hover,a.citem:focus-visible{background:#141416}
 a.citem .v{border-bottom:1px solid var(--accent);padding-bottom:3px;display:inline-block}
 .clist .v.todo{color:var(--muted)}
 footer{padding:40px 0 60px;color:var(--muted);font-size:12px;letter-spacing:.18em;text-transform:uppercase}
+
+/* ====== CONTENT: rides on the shader, which turns coral behind it ====== */
+#content{
+  position:relative;z-index:1;
+  background:transparent;color:var(--ink);
+  /* tokens re-pointed for near-black ink on the coral ground (7.5:1) */
+  --accent:#141416;             /* graphic black reads hardest on coral */
+  --muted:rgba(20,20,22,.72);
+  --dim:rgba(20,20,22,.86);
+  --line:rgba(20,20,22,.22);
+}
+#content .contact{border-top:1px solid var(--line)}
+
+/* the facts slide is a full page that pins while its text types itself out. it
+   starts over the night ground, so its colour is animated from paper to ink in
+   step with the background rather than being fixed either way. */
+#content .facts{min-height:100svh;display:flex;align-items:center;color:var(--fg)}
+#content .facts .facts-grid{width:100%}
+#content .facts .k,
+#content .facts .n{color:inherit;opacity:.72}
+
+/* the untyped tail keeps its space so nothing reflows as the characters land;
+   the caret hangs over it on a negative margin so it costs no width either. */
+.untyped{visibility:hidden}
+.typing .untyped::before{content:"";display:inline-block;
+  width:.46em;height:.82em;margin-right:-.46em;background:currentColor;
+  vertical-align:-.08em;opacity:.85}
+
+/* without scroll choreography the ground can never be driven to coral, so the
+   content paints it flat instead and stays readable. */
+.no-gsap #content{background:var(--paper)}
+.no-gsap #content .facts{background:var(--signature);color:var(--ink)}
+@media (prefers-reduced-motion:reduce){
+  #content{background:var(--paper)}
+  #content .facts{background:var(--signature);color:var(--ink)}
+}
+#content .panel p:not(.eyebrow),
+#content .feat li{color:var(--dim)}
+#content .eyebrow{color:var(--muted)}
+#content .feat li{border-bottom:1px solid var(--line)}
+#content .cta{border-color:var(--ink);color:var(--ink)}
+#content .cta:hover,
+#content .cta:focus-visible{background:var(--accent);border-color:var(--accent);color:#fff}
+#content .hprog{background:var(--line)}
+#content .clist{background:var(--line);border-color:var(--line)}
+#content .clist>*{background:var(--paper)}
+#content a.citem:hover,
+#content a.citem:focus-visible{background:#E7E2DB}
 
 .w{display:inline-block;overflow:hidden;vertical-align:top}
 .w > i{display:inline-block;font-style:normal;transform:translateY(105%)}
@@ -166,18 +214,15 @@ footer{padding:40px 0 60px;color:var(--muted);font-size:12px;letter-spacing:.18e
   <div class="cue">Scroll</div>
 </div>
 
-<!-- ================= STATEMENT ================= -->
-<section class="statement wrap">
-  <p class="js-lines">I'm a sophomore who already shipped a product to the <span class="hl">App&nbsp;Store</span>.</p>
-</section>
+<main id="content">
 
 <!-- ================= FACTS ================= -->
 <section class="facts wrap">
   <div class="facts-grid">
-    <div class="fact js-fade"><span class="k">Studying</span><div class="v">Computer Science</div><div class="n">University of Houston · Sophomore</div></div>
-    <div class="fact js-fade"><span class="k">Graduating</span><div class="v">2029</div><div class="n">Bachelor of Science</div></div>
-    <div class="fact js-fade"><span class="k">Languages</span><div class="v">Java</div><div class="n">C++ in progress — coursework</div></div>
-    <div class="fact js-fade"><span class="k">Shipped</span><div class="v">1 App</div><div class="n">Live on the App Store</div></div>
+    <div class="fact"><span class="k">Studying</span><div class="v">Computer Science</div><div class="n">University of Houston · Sophomore</div></div>
+    <div class="fact"><span class="k">Graduating</span><div class="v">2029</div><div class="n">Bachelor of Science</div></div>
+    <div class="fact"><span class="k">Languages</span><div class="v">Java</div><div class="n">C++ in progress — coursework</div></div>
+    <div class="fact"><span class="k">Shipped</span><div class="v">1 App</div><div class="n">Live on the App Store</div></div>
   </div>
 </section>
 
@@ -231,6 +276,8 @@ footer{padding:40px 0 60px;color:var(--muted);font-size:12px;letter-spacing:.18e
   <footer>James Nguyen · Tomball, Texas</footer>
 </section>
 
+</main>
+
 <script src="https://cdn.jsdelivr.net/npm/lenis@1.1.18/dist/lenis.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js"></script>
@@ -244,6 +291,7 @@ footer{padding:40px 0 60px;color:var(--muted);font-size:12px;letter-spacing:.18e
   var FS=[
   'precision highp float;',
   'uniform vec2 u_res; uniform float u_time; uniform float u_scroll;',
+  'uniform float u_theme; uniform float u_paper;',
   'float hash(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453123);}',
   'float noise(vec2 p){vec2 i=floor(p),f=fract(p);vec2 u=f*f*(3.-2.*f);',
   ' return mix(mix(hash(i),hash(i+vec2(1,0)),u.x),mix(hash(i+vec2(0,1)),hash(i+vec2(1,1)),u.x),u.y);}',
@@ -257,17 +305,28 @@ footer{padding:40px 0 60px;color:var(--muted);font-size:12px;letter-spacing:.18e
   ' float n=fbm(p+1.1*q);',
   ' float bands=n*6.5;',
   ' float f=fract(bands);',
-  ' float w=fwidth(bands)*1.9+0.016;',
-  ' float line=1.0-smoothstep(0.0,w,min(f,1.0-f));',
-  ' vec3 base=vec3(0.047,0.047,0.051);',
-  ' vec3 lc=mix(vec3(0.30,0.32,0.36),vec3(1.0,0.502,0.357),smoothstep(0.58,0.88,n));',
-  ' gl_FragColor=vec4(base+lc*line*0.5,1.0);',
+  ' float fw=fwidth(bands);',
+  ' float line=1.0-smoothstep(0.0,fw*1.9+0.016,min(f,1.0-f));',
+  /* the day ground carries body copy, so its contours are drawn finer and softer
+     than the night ones - heavy black lines cut straight through small text */
+  ' float fine=1.0-smoothstep(0.0,fw*1.0+0.006,min(f,1.0-f));',
+  /* night: near-black ground, grey-to-coral contours laid over it additively */
+  ' vec3 night=vec3(0.047,0.047,0.051)',
+  '   +mix(vec3(0.30,0.32,0.36),vec3(1.0,0.502,0.357),smoothstep(0.58,0.88,n))*line*0.5;',
+  /* day: the same contours cut into a coral ground in black */
+  ' vec3 day=mix(vec3(1.0,0.502,0.357),vec3(0.0),fine*0.62);',
+  /* paper: the ground the projects deck slides across, contours barely there */
+  ' vec3 paper=mix(vec3(0.945,0.933,0.914),vec3(0.0),fine*0.26);',
+  ' vec3 col=mix(night,day,u_theme);',
+  ' col=mix(col,paper,u_paper);',
+  ' gl_FragColor=vec4(col,1.0);',
   '}'].join('\n');
   function sh(t,src){var o=gl.createShader(t);gl.shaderSource(o,src);gl.compileShader(o);
     return gl.getShaderParameter(o,gl.COMPILE_STATUS)?o:null;}
   var ext=gl.getExtension('OES_standard_derivatives');
   var fsSrc=(ext?'#extension GL_OES_standard_derivatives : enable\n':'')+FS;
-  if(!ext) fsSrc=fsSrc.replace('float w=fwidth(bands)*1.9+0.016;','float w=0.05;');
+  /* no derivatives: both contour widths fall back to a fixed screen-space guess */
+  if(!ext) fsSrc=fsSrc.replace('float fw=fwidth(bands);','float fw=0.018;');
   var v=sh(gl.VERTEX_SHADER,VS), f=sh(gl.FRAGMENT_SHADER,fsSrc);
   if(!v||!f){ cv.style.display='none'; return; }
   var pr=gl.createProgram(); gl.attachShader(pr,v); gl.attachShader(pr,f); gl.linkProgram(pr);
@@ -278,16 +337,28 @@ footer{padding:40px 0 60px;color:var(--muted);font-size:12px;letter-spacing:.18e
   var loc=gl.getAttribLocation(pr,'p'); gl.enableVertexAttribArray(loc);
   gl.vertexAttribPointer(loc,2,gl.FLOAT,false,0,0);
   var uRes=gl.getUniformLocation(pr,'u_res'),uT=gl.getUniformLocation(pr,'u_time'),
-      uS=gl.getUniformLocation(pr,'u_scroll');
+      uS=gl.getUniformLocation(pr,'u_scroll'),uTh=gl.getUniformLocation(pr,'u_theme'),
+      uPa=gl.getUniformLocation(pr,'u_paper');
   var reduce=matchMedia('(prefers-reduced-motion:reduce)').matches;
-  var dpr=Math.min(window.devicePixelRatio||1,1.5), scrollN=0, start=performance.now(), lastT=0;
+  var dpr=Math.min(window.devicePixelRatio||1,1.5), scrollN=0, themeV=0, paperV=0,
+      start=performance.now(), lastT=0;
   function draw(){ gl.uniform1f(uT,lastT); gl.uniform1f(uS,reduce?0:scrollN);
+    gl.uniform1f(uTh,themeV); gl.uniform1f(uPa,paperV);
     gl.drawArrays(gl.TRIANGLES,0,3); }
   function size(){ var w=Math.floor(innerWidth*dpr),h=Math.floor(innerHeight*dpr);
     if(w===cv.width&&h===cv.height) return;
     cv.width=w;cv.height=h;gl.viewport(0,0,w,h);gl.uniform2f(uRes,w,h);draw(); }
   size(); addEventListener('resize',size);
-  window.__bgScroll=function(y){ scrollN=y/Math.max(1,document.body.scrollHeight-innerHeight); };
+  /* the ground travels with the scroll only while it is still night. once the coral
+     has fully arrived it holds its last position, so the projects slide across a
+     background that is alive but no longer moving with the page. */
+  window.__bgScroll=function(y){
+    if(themeV>=1) return;
+    scrollN=y/Math.max(1,document.body.scrollHeight-innerHeight);
+  };
+  function clamp01(v){ return v<0?0:(v>1?1:v); }
+  window.__bgTheme=function(v){ themeV=clamp01(v); if(reduce) draw(); };
+  window.__bgPaper=function(v){ paperV=clamp01(v); if(reduce) draw(); };
   function loop(now){ lastT=(now-start)/1000; draw(); requestAnimationFrame(loop); }
   if(reduce) draw(); else requestAnimationFrame(loop);
 })();
@@ -297,6 +368,9 @@ footer{padding:40px 0 60px;color:var(--muted);font-size:12px;letter-spacing:.18e
   var reduce=matchMedia('(prefers-reduced-motion:reduce)').matches;
   var hasGSAP=!!(window.gsap&&window.ScrollTrigger);
   if(hasGSAP) gsap.registerPlugin(ScrollTrigger);
+  /* the coral ground is driven by the scroll; with no gsap it can never arrive,
+     so the content paints it flat instead (see .no-gsap in the stylesheet) */
+  else document.documentElement.classList.add('no-gsap');
 
   if(window.Lenis && !reduce){
     var lenis=new Lenis({duration:1.15,smoothWheel:true,
@@ -348,12 +422,23 @@ footer{padding:40px 0 60px;color:var(--muted);font-size:12px;letter-spacing:.18e
   var SHRINK_TO=1/3;              /* picture stops shrinking at 1/3 */
   var SHRINK_END=0.55;            /* ...and reaches it 55% through the pin, then holds */
   var SIG_START_SIZE=0.75;        /* signature begins when the picture hits 3/4 */
+  var META_OUT=0.62;              /* the text inside the box leaves here */
   var SIG_AT=SHRINK_END*(1-SIG_START_SIZE)/(1-SHRINK_TO);
   var SIG_DRAW=1-SIG_AT;          /* keeps drawing after the picture stops */
 
   var nameWrap=document.getElementById('nameWrap'), nameB=document.getElementById('nameB');
 
   var waveg=document.getElementById('waveg');
+
+  var frameEl=document.getElementById('frame'),
+      portrait=document.querySelector('#frame .portrait');
+
+  /* the portrait drifts from its bottom-right anchor to the centre of the box, at the
+     size it already is - the box keeps shrinking around it, nothing is blown back up.
+     offset* are layout boxes, so they ignore the live transforms and recompute
+     correctly on refresh/resize. */
+  function pdx(){ return frameEl.offsetWidth /2 - (portrait.offsetLeft + portrait.offsetWidth /2); }
+  function pdy(){ return frameEl.offsetHeight/2 - (portrait.offsetTop  + portrait.offsetHeight/2); }
 
   var tl=gsap.timeline({scrollTrigger:{
     trigger:'#stage', start:'top top', end:'+=260%', pin:true, scrub:1,
@@ -375,7 +460,14 @@ footer{padding:40px 0 60px;color:var(--muted);font-size:12px;letter-spacing:.18e
     .to('#frame',{boxShadow:'0 40px 90px rgba(0,0,0,.55)',ease:'none',duration:.3},0)
     .to('.cue',{autoAlpha:0,ease:'none',duration:.1},0)
     .to(nameWrap,{scale:.26,ease:'none',duration:SHRINK_END},0)
-    .to('#quoteBg',{opacity:1,ease:'none',duration:.14},0.16);
+    .to('#quoteBg',{opacity:1,ease:'none',duration:.14},0.16)
+
+    /* ---- the portrait takes the middle of the box ----
+       the box itself, the name, the signature and the quote all stay as they are.
+       the portrait drifts off its bottom-right anchor while the box is still
+       shrinking, and only the meta text leaves, so the picture ends up alone in it. */
+    .to(portrait,{x:pdx,y:pdy,ease:'power2.inOut',duration:META_OUT-0.20},0.20)
+    .to('.frame-meta',{autoAlpha:0,ease:'none',duration:.12},META_OUT);
 
   /* ---------- travelling wave marquee ----------
      the sine is rebuilt each frame with a moving phase, so the wave itself
@@ -396,22 +488,108 @@ footer{padding:40px 0 60px;color:var(--muted);font-size:12px;letter-spacing:.18e
   }
 
   /* ---------- reveals ---------- */
+  /* the words sit at translateY(105%) in CSS, but getComputedStyle reports that as a
+     pixel matrix, so gsap reads yPercent as already 0 and a plain .to({yPercent:0})
+     animates nothing - the line stays parked off its baseline forever. fromTo states
+     the percentage explicitly so gsap owns both ends of the tween. */
   document.querySelectorAll('.js-lines').forEach(function(el){
-    gsap.to(splitWords(el),{yPercent:0,duration:.95,ease:'power4.out',stagger:.035,
-      scrollTrigger:{trigger:el,start:'top 92%'}});
+    gsap.fromTo(splitWords(el),{yPercent:105},
+      {yPercent:0,duration:.95,ease:'power4.out',stagger:.035,
+       scrollTrigger:{trigger:el,start:'top 92%'}});
   });
   gsap.utils.toArray('.js-fade').forEach(function(el,i){
     gsap.from(el,{y:30,autoAlpha:0,duration:.85,ease:'power3.out',delay:(i%4)*.07,
       scrollTrigger:{trigger:el,start:'top 95%'}});
   });
 
+  /* ---------- the facts slide types itself out as the ground turns ----------
+     it pins for a page and a half: the night ground cross-fades to coral with its
+     contours inverted to black, the text colour crosses from paper to ink in step
+     with it, and the characters land at a constant rate across the four facts. */
+  (function(){
+    var sec=document.querySelector('.facts');
+    if(!sec) return;
+
+    /* the untyped tail stays in the DOM holding its space, so a line never
+       reflows mid-type and the pin measures the same height throughout. */
+    function makeTyper(el){
+      var full=el.textContent;
+      el.textContent='';
+      var head=document.createElement('span'),
+          tail=document.createElement('span');
+      tail.className='untyped';
+      el.appendChild(head); el.appendChild(tail);
+      var t={len:full.length||1,p:{v:0}};
+      t.set=function(v){
+        v=v<0?0:(v>1?1:v);
+        var n=Math.round(v*full.length);
+        head.textContent=full.slice(0,n);
+        tail.textContent=full.slice(n);
+        el.classList.toggle('typing',v>0&&v<1);
+      };
+      t.set(0);
+      return t;
+    }
+
+    var typers=[];
+    [].forEach.call(sec.querySelectorAll('.fact'),function(f){
+      ['.k','.v','.n'].forEach(function(s){
+        var el=f.querySelector(s);
+        if(el) typers.push(makeTyper(el));
+      });
+    });
+
+    /* no coral may show while any of the hero is still on screen, so the ground
+       change lives inside the pin - which only starts once the stage has scrolled
+       away entirely - and waits until the typing is already under way. */
+    var TYPE_START=0.04, TYPE_SPAN=0.84;
+    var GROUND_AT=0.26, GROUND_DUR=0.44;
+
+    var tl=gsap.timeline({
+      scrollTrigger:{trigger:sec,start:'top top',end:'+=170%',pin:true,scrub:1,
+        invalidateOnRefresh:true},
+      /* read off the timeline, not the raw scroll, so the ground is scrubbed on
+         exactly the same clock as the text colour below it */
+      onUpdate:function(){
+        if(window.__bgTheme)
+          window.__bgTheme((tl.progress()-GROUND_AT)/GROUND_DUR);
+      }
+    });
+
+    tl.to({},{duration:1},0)                 /* anchors the timeline at one unit */
+      /* the text crosses paper-white to ink across exactly the window the ground
+         crosses night to coral, both linear, so the two move at the same rate */
+      .to(sec,{color:'#141416',ease:'none',duration:GROUND_DUR},GROUND_AT);
+
+    var total=0,at=TYPE_START;
+    typers.forEach(function(t){ total+=t.len; });
+    typers.forEach(function(t){
+      var d=TYPE_SPAN*t.len/(total||1);
+      tl.to(t.p,{v:1,ease:'none',duration:d,
+        onUpdate:function(){ t.set(t.p.v); }},at);
+      at+=d;
+    });
+  })();
+
   /* ---------- horizontal projects ---------- */
   var track=document.getElementById('htrack'), hsec=document.getElementById('hsec');
   function amount(){ return Math.max(0,track.scrollWidth-window.innerWidth); }
-  gsap.to(track,{x:function(){return -amount();},ease:'none',
-    scrollTrigger:{trigger:hsec,start:'top top',end:function(){return '+='+amount();},
-      pin:true,scrub:1,invalidateOnRefresh:true,
-      onUpdate:function(self){ document.getElementById('hprog').style.width=(self.progress*100)+'%'; }}});
+
+  /* the ground turns from coral to paper over the deck's approach, so it is
+     already white by the time the first panel reaches the edge of the screen */
+  function paper(self){ if(window.__bgPaper) window.__bgPaper(self.progress); }
+  ScrollTrigger.create({trigger:hsec,start:'top bottom',end:'top top',
+    invalidateOnRefresh:true,onUpdate:paper,onRefresh:paper});
+
+  /* the deck starts a whole screen off to the right, so the section opens on empty
+     ground and every panel - the PROJECTS title included - arrives from the edge.
+     the pin is lengthened by that extra screen so the exit speed is unchanged. */
+  gsap.fromTo(track,{x:function(){return window.innerWidth;}},
+    {x:function(){return -amount();},ease:'none',
+     scrollTrigger:{trigger:hsec,start:'top top',
+       end:function(){return '+='+(amount()+window.innerWidth);},
+       pin:true,scrub:1,invalidateOnRefresh:true,
+       onUpdate:function(self){ document.getElementById('hprog').style.width=(self.progress*100)+'%'; }}});
 
   addEventListener('load',function(){ ScrollTrigger.refresh(); });
 })();
